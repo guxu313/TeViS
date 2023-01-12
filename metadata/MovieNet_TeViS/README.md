@@ -25,7 +25,7 @@ The details of our dataset are presented in the table below.
 
 ## Download
 
-You can download all the frames(Movie per-shot keyframes 240P) through this [MovieNet](https://movienet.github.io/). Together we also offer new annotations for our TeViS task, you can download annotations through [MovieNet-TeViS](https://github.com/guxu313/scripts-translator/tree/release/metadata/MovieNet_TeViS) (updated 12/29/2022). The format of the data is:
+You can download all the frames(Movie per-shot keyframes 240P) through this [MovieNet](https://movienet.github.io/). Together we also offer new annotations for our TeViS task, you can download annotations through [MovieNet-TeViS](https://github.com/guxu313/TeViS/tree/main/metadata/MovieNet_TeViS) (release later). The format of the data is:
 ```
 {
     "global_id":38,
