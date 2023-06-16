@@ -15,8 +15,11 @@ In the TeViS task, we aim to retrieve an ordered sequence of images from large-s
 The following figure shows how we differ from existing tasks, other datasets.
 <img src="figs/dataset.png" alt="dataset" style="zoom:50%;" />
 
-We will release our code, and dataset soon. Thanks for your patience.
+We will release our code soon. Thanks for your patience.
 
+## News
+
+- :smiley:**June, 2023: [**MovieNet-TeViS dataset**](https://github.com/guxu313/TeViS/tree/main/metadata/MovieNet_TeViS) was released publicly.**
 
 ## Citing TeViS
 
