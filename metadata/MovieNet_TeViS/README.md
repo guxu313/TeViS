@@ -25,7 +25,7 @@ The details of our dataset are presented in the table below.
 
 ## Download
 
-You can download all the frames(Movie per-shot keyframes 240P) through this [MovieNet](https://movienet.github.io/). Together we also offer new annotations for our TeViS task, you can download annotations through [MovieNet-TeViS](https://github.com/guxu313/TeViS/tree/main/metadata/MovieNet_TeViS) ($\color{OrangeRed}{News!}$ We have released our dataset). The format of the data is:
+You can download all the frames(Movie per-shot keyframes 240P) through this [MovieNet](https://movienet.github.io/). Together we also offer new annotations for our TeViS task, you can download annotations through [MovieNet-TeViS]() ($\color{OrangeRed}{News!}$ We have released our dataset). The format of the data is:
 ```
 {
     "global_id":38,
@@ -67,16 +67,3 @@ The license of the collected dataset is [here](./LICENSE). -->
 ## Citing MovieNet-TeViS
 
 If you find this dataset useful for your research, please consider citing our paper. :blush:
-
-```bibtex
-@inproceedings{Gu_2023_TeViS,
- author = {Xu Gu, Yuchong Sun, Feiyue Ni, Shizhe Chen, Ruihua Song, Boyuan Li, Xiang Cao},
- title = {Translating Text Synopses to Video Storyboards},
- booktitle = {arxiv},
- year = {2023}
-}
-```
-
-## Contact Information
-
-For further request about dataset or problems using the dataset, you can contact [Xu Gu]() (`guxu@ruc.edu.cn`).
