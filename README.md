@@ -16,8 +16,4 @@ We will release our code soon. Thanks for your patience.
 
 - :smiley:**June, 2023: [**MovieNet-TeViS dataset**]() was released publicly.**
 
-## Citing TeViS
-
-If you find the dataset and model useful for your research, please consider citing our paper. 😊
-
 
