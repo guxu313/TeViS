@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=7 python src/run_train.py --distributed --blob_mount_dir /blob_mount --cfg src/configs/final_train.yaml
