@@ -14,7 +14,7 @@ We will soon release the ablation details and accompanying code. Thank you for y
 
 ## News
 
-- :smiley:**July, 2023: [**VQ-Trans code**]() was released publicly.**
+- :star:**July, 2023: **VQ-Trans code** was released publicly.**
 - :smiley:**June, 2023: [**MovieNet-TeViS dataset**]() was released publicly.**
 
 
