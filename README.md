@@ -1,5 +1,9 @@
 # Translating Text Synopses to Video Storyboards
 
+By Xu Gu, Yuchong Sun, Feiyue Ni, Shizhe Chen, Ruihua Song, Boyuan Li, and Xiang Cao
+
+[\[Project Page\]](https://ruc-aimind.github.io/projects/TeViS/)  [\[arXiv\]](https://arxiv.org/pdf/2301.00135.pdf)
+
 ## What is TeViS task?
 
 In order to reduce the gap between existing tasks and realistic needs for storyboard creation, we propose a new task called Text synopsis to Video Storyboard (TeViS). In the TeViS task, we aim to retrieve an ordered sequence of images from large-scale movie database as video storyboard to visualize an input text synopsis.
