@@ -1,7 +1,5 @@
 # Translating Text Synopses to Video Storyboards
 
-By Xu Gu, Yuchong Sun, Feiyue Ni, Shizhe Chen, Ruihua Song, Boyuan Li, and Xiang Cao
-
 [\[Project Page\]](https://ruc-aimind.github.io/projects/TeViS/)  [\[arXiv\]](https://arxiv.org/pdf/2301.00135.pdf)
 
 ## What is TeViS task?
