@@ -26,7 +26,7 @@ import scipy.stats as stats
 import sys
 
 
-class MovieGPTDecoderPrefix(nn.Module):
+class MovieGPTDecoderCross(nn.Module):
     def __init__(self, args, cfg):
         super().__init__()
 
@@ -138,24 +138,25 @@ class MovieGPTDecoderPrefix(nn.Module):
 
 
     @torch.no_grad()
-    def cal_kdll_prefix(self ,gt, input_embds, padding_mask,index_eos, text_len,res_dir):
+    def cal_kdll_cross(self ,gt, input_embds, padding_mask,index_eos, text_embds, text_attention_mask,res_dir):
         gt = gt.permute(1,0,2)
         B,L,C=gt.shape
+        text_embds = text_embds.permute(1,0,2).contiguous()
 
         # Prompt frame num, default 0, i.e. predict from sos
         prompt_frame_num = self.cfg.prompt_frame_num
 
         # Init predictions
-        all_predictions = input_embds.permute(1,0,2)[:, :(text_len+1+prompt_frame_num),:]  
-        retrieved_index = torch.arange(prompt_frame_num+text_len+1,device=all_predictions.device).unsqueeze(0).repeat([B,1])        # [B,1+prompt_frame_num]
+        all_predictions = input_embds.permute(1,0,2)[:, :(1+prompt_frame_num),:]  
+        retrieved_index = torch.arange(prompt_frame_num+1,device=all_predictions.device).unsqueeze(0).repeat([B,1])        # [B,1+prompt_frame_num]
 
         # Mask retrieved and padded images 
         valid_pos = padding_mask.bool() 
-        valid_pos[:,:(text_len+1+prompt_frame_num)] = False
-        index_eos_w_sos = (index_eos[1], index_eos[0]+text_len+1) 
+        valid_pos[:,:(1+prompt_frame_num)] = False
+        index_eos_w_sos = (index_eos[1], index_eos[0]+1) 
         valid_pos[index_eos_w_sos] = False
 
-        for t in range(prompt_frame_num+text_len+1,L):
+        for t in range(prompt_frame_num+1,L):
             # Forward
             hidden_states = all_predictions
             for i, self_block in enumerate(self.self_blocks):
@@ -193,26 +194,22 @@ class MovieGPTDecoderPrefix(nn.Module):
         kdlls={"all":[],"2":[],"3_5":[],"6_max":[]}
         res_strs = []
         for i in range(B):
-            seq_length=int((padding_mask[i][text_len:].sum()).item())+text_len-1
+            seq_length=int((padding_mask[i][:].sum()).item())-1
 
             gt_index = torch.arange(seq_length)
             pred_index = retrieved_index[i,:seq_length].cpu()
-            gt_index=gt_index[text_len+1:]
-            pred_index=pred_index[text_len+1:]
-
-            # reduce text_length
-            gt_index = gt_index-text_len
-            pred_index = pred_index-text_len
+            gt_index=gt_index[1:]
+            pred_index=pred_index[1:]
             
             res_strs.append(','.join(map(str,pred_index.tolist())))
             kdll, p_value = stats.kendalltau(gt_index, pred_index)
             
             kdlls["all"].append(kdll)
-            if seq_length-text_len-1 == 2:
+            if seq_length-1 == 2:
                 kdlls["2"].append(kdll)
-            elif seq_length-text_len-1 >= 3 and seq_length-text_len-1 <= 5:
+            elif seq_length-1 >= 3 and seq_length-1 <= 5:
                 kdlls["3_5"].append(kdll)
-            elif seq_length-text_len-1 >= 6 :
+            elif seq_length-1 >= 6 :
                 kdlls["6_max"].append(kdll)
         res_fs_num_str = str(len(os.listdir(res_dir))).zfill(5)
         if len(os.listdir(res_dir)) == 0:
@@ -263,13 +260,11 @@ class MovieGPTDecoderPrefix(nn.Module):
 
          # add text 
         l_t, _, _ = text_embds.shape
-
+        text_embds = text_embds + self.wpe_text(torch.arange(l_t, dtype=torch.long, device=text_embds.device)).unsqueeze(1)
         # add text_attention_mask
         text_attention_mask = torch.where(text!=0, torch.ones_like(text), torch.zeros_like(text))
-        padding_mask = torch.cat([text_attention_mask.to(padding_mask.device),padding_mask],dim=1)  
 
-        L=L+l_t+1    
-
+        L=L+1    
 
         # position embed for imgs
         position_ids = torch.arange(L, dtype=torch.long, device=valid_len.device)
@@ -280,22 +275,22 @@ class MovieGPTDecoderPrefix(nn.Module):
         # img & text attention mask
         img_attention_mask = padding_mask 
         img_attention_mask = self.generate_attn_mask(img_attention_mask)
-        # text_attention_mask = self.generate_attn_mask(text_attention_mask)
+        text_attention_mask = self.generate_attn_mask(text_attention_mask)
 
         # input
-        hidden_states = torch.cat([text_embds,img_embds],dim=0) + position_embds 
+        hidden_states = img_embds + position_embds 
         hidden_states = self.emb_norm(hidden_states) 
 
 
         # Cal kdll if not in training
         kdlls={"all":[],"2":[],"3_5":[],"6_max":[]}
         retrieved_index = 0
-
         if not is_train:
-            kdlls, retrieved_index = self.cal_kdll_prefix(gt = torch.cat([text_embds,img_embds],dim=0), 
-                                                   input_embds=hidden_states, 
+            kdlls, retrieved_index = self.cal_kdll_cross(gt = img_embds, 
+                                                input_embds=hidden_states, 
                                                     padding_mask=padding_mask, index_eos=index_eos, 
-                                                    text_len = l_t,
+                                                    text_embds=text_embds,
+                                                    text_attention_mask=text_attention_mask,
                                                     res_dir=self.res_dir)
 
         # Pass forward, teacher forcing
@@ -303,7 +298,7 @@ class MovieGPTDecoderPrefix(nn.Module):
         text_embds = text_embds.permute(1,0,2).contiguous()
         for i, self_block in enumerate(self.self_blocks):
             # Self-Attn
-            outputs = self_block(hidden_states,attention_mask=img_attention_mask, 
+            outputs = self_block(hidden_states,attention_mask=None, 
                             encoder_hidden = None, encoder_attention_mask =  None)
             hidden_states = outputs[0]
 
@@ -311,18 +306,18 @@ class MovieGPTDecoderPrefix(nn.Module):
             if self.cross_blocks is not None:
                 cross_block = self.cross_blocks[i]
                 outputs = cross_block(hidden_states,attention_mask=None, 
-                                encoder_hidden = text_embds, encoder_attention_mask =  text_attention_mask)
+                                encoder_hidden = text_embds, encoder_attention_mask = text_attention_mask)
                 hidden_states = outputs[0]
 
         # Loss
         img_embds = img_embds[1:, ] 
         hidden_states=hidden_states.permute(1,0,2) 
-        predictions = hidden_states [l_t:-1,] 
+        predictions = hidden_states [:-1,] 
 
         predictions = F.normalize(predictions,dim=-1)
         img_embds = F.normalize(img_embds,dim=-1)
 
-        padding_mask = padding_mask[:,l_t+1: ]  
+        padding_mask = padding_mask[:,1: ]  
         padding_mask = padding_mask.permute(1,0)
         loss = self.cal_loss(predictions, img_embds, padding_mask=padding_mask)
         loss += 1.0 * quantize_loss
@@ -361,7 +356,7 @@ if __name__ == '__main__':
                     })
 
     args = EasyDict({'blob_mount_dir': '/blob_mount'})
-    model = MovieGPTDecoderPrefix(args, cfg).cuda()
+    model = MovieGPTDecoderCross(args, cfg).cuda()
 
     valid_len=torch.randint(1,20,(8,))
     padding_mask = torch.zeros(8,20)

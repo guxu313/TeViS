@@ -6,6 +6,7 @@ import os
 from mmcv import Config
 
 from src.models.model import MovieGPTDecoderPrefix
+from src.models.model_cross import MovieGPTDecoderCross
 
 from src.trainer import Trainer
 from src.datasets.dataloader import build_dataloader
@@ -47,7 +48,10 @@ def main():
         mkdirp(os.path.join(args.blob_mount_dir, cfg.TRAINING.save_dir,"log"))
         add_log_to_file(os.path.join(args.blob_mount_dir, cfg.TRAINING.save_dir,"log/log.txt"))
 
-    model = MovieGPTDecoderPrefix(args, cfg)
+    if cfg.model_type == 'prefix':
+        model = MovieGPTDecoderPrefix(args, cfg)
+    if cfg.model_type == 'cross':
+        model = MovieGPTDecoderCross(args, cfg)
 
     if cfg.WEIGHTS.model_weight != '':
         LOGGER.info(f"Loading model weights from {cfg.WEIGHTS.model_weight}")
